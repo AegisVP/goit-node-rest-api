@@ -1,0 +1,9 @@
+# node cache
+node_modules
+
+# IDE settings
+.vscode
+.idea
+
+# macOS garbage
+.DS_Store
