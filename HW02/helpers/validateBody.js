@@ -5,9 +5,9 @@ const validateBody = schema => {
     const validateOptions = { abortEarly: false };
     const { error } = schema.validate(req.body, validateOptions);
     if (error) {
-      next(HttpError(400, error.message));
+      return next(HttpError(400, error.message));
     }
-    next();
+    return next();
   };
 
   return func;
