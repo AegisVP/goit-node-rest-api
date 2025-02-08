@@ -7,3 +7,6 @@ node_modules
 
 # macOS garbage
 .DS_Store
+
+#env
+.env
