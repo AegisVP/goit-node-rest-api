@@ -24,9 +24,7 @@ export async function removeContact(contactId) {
   if (idx === -1) {
     return null;
   }
-  console.log({ contacts });
   const [removed] = contacts.splice(idx, 1);
-  console.log({ removed, contacts });
   setTimeout(() => writeContacts(contacts), 0);
   return removed;
 }
