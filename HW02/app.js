@@ -12,15 +12,6 @@ app.use(express.json());
 
 app.use('/api/contacts', contactsRouter);
 
-app.use((err, _, res, next) => {
-  const { status = 500, message = 'Server error' } = err;
-  return res.status(status).json({ message });
-});
-
-app.use((_, res) => {
-  return res.status(404).json({ message: 'Route not found' });
-});
-
-app.listen(3000, () => {
-  console.log('Server is running. Use our API on port: 3000');
-});
+app.use(({ status = 500, message = 'Server error' }, _, res, next) => res.status(status).json({ message }));
+app.use((_, res) => res.status(404).json({ message: 'Route not found' }));
+app.listen(3000, () => console.log('Server is running. Use our API on port: 3000'));
