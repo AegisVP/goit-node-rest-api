@@ -1,4 +1,4 @@
-import { updateContactSchema } from '../schemas/contactsSchemas.js';
+import HttpError from '../helpers/HttpError.js';
 import { listContacts, getContactById, removeContact, addContact, modifyContact } from '../services/contactsServices.js';
 
 export const getAllContacts = async (_, res) => {
@@ -6,21 +6,21 @@ export const getAllContacts = async (_, res) => {
   return res.json(contacts);
 };
 
-export const getOneContact = async (req, res) => {
+export const getOneContact = async (req, res, next) => {
   const foundContact = await getContactById(req.params.id);
   if (foundContact) {
     return res.json(foundContact);
   } else {
-    return res.status(404).json({ message: 'Not found' });
+    return next(HttpError(404));
   }
 };
 
-export const deleteContact = async (req, res) => {
+export const deleteContact = async (req, res, next) => {
   const deletedContact = await removeContact(req.params.id);
   if (deletedContact) {
     return res.json(deletedContact);
   } else {
-    return res.status(404).json({ message: 'Not found' });
+    return next(HttpError(404));
   }
 };
 
@@ -29,10 +29,10 @@ export const createContact = async (req, res) => {
   return res.status(201).json(createdContact);
 };
 
-export const updateContact = async (req, res) => {
+export const updateContact = async (req, res, next) => {
   const updatedContact = await modifyContact(req.params.id, req.body);
   if (!updatedContact) {
-    return res.status(404).json({ message: 'Not found' });
+    return next(HttpError(404));
   }
   return res.json(updatedContact);
 };
