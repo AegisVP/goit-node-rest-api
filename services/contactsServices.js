@@ -4,8 +4,8 @@ import * as uuid from 'uuid';
 
 const contactsPath = resolve('db', 'contacts.json');
 
-function writeContacts(contacts) {
-  writeFile(contactsPath, JSON.stringify(contacts));
+async function writeContacts(contacts) {
+  return await writeFile(contactsPath, JSON.stringify(contacts));
 }
 
 export async function listContacts() {
@@ -33,7 +33,7 @@ export async function addContact({ name, email, phone }) {
   const contacts = await listContacts();
   const newContact = { id: uuid.v7(), name, email, phone };
   contacts.push(newContact);
-  setTimeout(() => writeContacts(contacts), 0);
+  await writeContacts(contacts);
   return newContact;
 }
 
@@ -51,6 +51,6 @@ export async function modifyContact(contactId, contactData) {
     phone: contactData.phone ?? originalContact.phone,
   };
   contacts.splice(idx, 1, resultingContact);
-  setTimeout(() => writeContacts(contacts), 0);
+  await writeContacts(contacts);
   return contacts[idx];
 }
