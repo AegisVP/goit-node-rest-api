@@ -12,4 +12,9 @@ export const updateContactSchema = Joi.object({
   name: Joi.string(),
   email: Joi.string().email(),
   phone: Joi.string().regex(PHONE_REGEX),
+  favorite: Joi.boolean(),
 }).or('name', 'email', 'phone');
+
+export const toggleFavoriteSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+});

@@ -5,7 +5,7 @@ import {
   removeContact,
   addContact,
   modifyContact,
-} from '../services/contactsServices.js';
+} from '../services/contactsServicesSequelize.js';
 
 export const getAllContacts = async (_, res) => {
   const contacts = await listContacts();
