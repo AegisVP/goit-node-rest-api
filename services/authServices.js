@@ -1,9 +1,38 @@
 import { User } from '../models/User.js';
-import { generateToken } from '../helpers/jwt.js';
 import { comparePasswords, encryptPassword } from '../helpers/passCrypt.js';
-import { constants } from '../config/constants.js';
+import { generateToken } from '../helpers/jwt.js';
 
-export const verifyUser = async ({ email, password }) => {
+const sanitizeUser = user => ({
+  id: user.id,
+  email: user.email,
+  subscription: user.subscription,
+  token: user.token ?? null,
+});
+
+const setUserToken = async user => {
+  if (!user || !(user instanceof User)) {
+    return false;
+  }
+
+  const token = generateToken({ id: user.id, email: user.email });
+  user.token = token;
+  await user.save();
+
+  return token;
+};
+
+const removeUserToken = async user => {
+  if (!user || !(user instanceof User)) {
+    return false;
+  }
+
+  user.token = null;
+  await user.save();
+
+  return true;
+};
+
+const verifyUser = async ({ email, password }) => {
   const user = await User.findOne({ where: { email } });
   if (!user) {
     return null;
@@ -19,27 +48,32 @@ export const verifyUser = async ({ email, password }) => {
 export const registerUser = async ({ email, password }) => {
   const user = await verifyUser({ email, password });
   if (user) {
-    return null;
+    return false;
   }
-  return await User.create({ email, password: encryptPassword(password) });
+
+  const newUser = await User.create({
+    email,
+    password: encryptPassword(password),
+  });
+
+  if (!newUser) {
+    return false;
+  }
+
+  return sanitizeUser(newUser);
 };
 
 export const loginUser = async ({ email, password }) => {
   const user = await verifyUser({ email, password });
-
   if (!user) {
-    return null;
+    return false;
   }
 
-  try {
-    const token = generateToken({ id: user.id, email: user.email });
-    user.token = token;
-    await user.save();
-    return user;
-  } catch (error) {
-    console.error(error);
-    return null;
+  if (!setUserToken(user)) {
+    return false;
   }
+
+  return sanitizeUser(user);
 };
 
 export const logoutUser = async userId => {
@@ -47,9 +81,8 @@ export const logoutUser = async userId => {
   if (!user) {
     return false;
   }
-  user.token = null;
-  await user.save();
-  return true;
+
+  return removeUserToken(user);
 };
 
 export const subscriptionUser = async (userId, subscription) => {
@@ -60,5 +93,6 @@ export const subscriptionUser = async (userId, subscription) => {
 
   user.subscription = subscription;
   await user.save();
-  return user;
+
+  return sanitizeUser(user);
 };
