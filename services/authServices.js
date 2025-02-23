@@ -1,13 +1,7 @@
+import gravatar from 'gravatar';
 import { User } from '../models/User.js';
 import { comparePasswords, encryptPassword } from '../helpers/passCrypt.js';
 import { generateToken } from '../helpers/jwt.js';
-
-const sanitizeUser = user => ({
-  id: user.id,
-  email: user.email,
-  subscription: user.subscription,
-  token: user.token ?? null,
-});
 
 const setUserToken = async user => {
   if (!user || !(user instanceof User)) {
@@ -32,6 +26,12 @@ const removeUserToken = async user => {
   return true;
 };
 
+const generateUserAvatar = async userEmail => {
+  const avatarURL = gravatar.url(userEmail, { protocol: 'http' });
+
+  return avatarURL;
+};
+
 const verifyUser = async ({ email, password }) => {
   const user = await User.findOne({ where: { email } });
   if (!user) {
@@ -51,8 +51,11 @@ export const registerUser = async ({ email, password }) => {
     return false;
   }
 
+  const avatarURL = await generateUserAvatar(email);
+
   const newUser = await User.create({
     email,
+    avatarURL,
     password: encryptPassword(password),
   });
 
@@ -60,7 +63,7 @@ export const registerUser = async ({ email, password }) => {
     return false;
   }
 
-  return sanitizeUser(newUser);
+  return newUser;
 };
 
 export const loginUser = async ({ email, password }) => {
@@ -69,11 +72,11 @@ export const loginUser = async ({ email, password }) => {
     return false;
   }
 
-  if (!setUserToken(user)) {
+  if (!(await setUserToken(user))) {
     return false;
   }
 
-  return sanitizeUser(user);
+  return user;
 };
 
 export const logoutUser = async userId => {
@@ -82,17 +85,21 @@ export const logoutUser = async userId => {
     return false;
   }
 
-  return removeUserToken(user);
+  if (!(await removeUserToken(user))) {
+    return false;
+  }
+
+  return user;
 };
 
-export const subscriptionUser = async (userId, subscription) => {
+export const updateUser = async (userId, userData) => {
   const user = await User.findByPk(userId);
   if (!user) {
     return null;
   }
 
-  user.subscription = subscription;
+  user.update(userData);
   await user.save();
 
-  return sanitizeUser(user);
+  return user;
 };

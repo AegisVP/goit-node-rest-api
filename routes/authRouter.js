@@ -4,13 +4,14 @@ import {
   logout,
   register,
   login,
-  subscription,
+  update,
 } from '../controllers/authController.js';
 import { validateBody } from '../helpers/validateBody.js';
 import {
   registerUserSchema,
   loginUserSchema,
-  updateUserSubSchema,
+  updateSubscriptionSchema,
+  updateAvatarSchema,
 } from '../schemas/usersSchemas.js';
 import { tryCatchWrapper } from '../helpers/tryCatchWrapper.js';
 import { handleAuth } from '../middlewares/handleAuth.js';
@@ -36,8 +37,15 @@ authRouter.get('/current', handleAuth, tryCatchWrapper(current));
 authRouter.patch(
   '/subscription',
   handleAuth,
-  validateBody(updateUserSubSchema),
-  tryCatchWrapper(subscription)
+  validateBody(updateSubscriptionSchema),
+  tryCatchWrapper(update)
+);
+
+authRouter.patch(
+  '/avatars',
+  handleAuth,
+  validateBody(updateAvatarSchema),
+  tryCatchWrapper(update)
 );
 
 export default authRouter;

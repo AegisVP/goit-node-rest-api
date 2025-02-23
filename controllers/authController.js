@@ -3,8 +3,15 @@ import {
   loginUser,
   logoutUser,
   registerUser,
-  subscriptionUser,
+  updateUser,
 } from '../services/authServices.js';
+
+export const sanitizeUser = user => ({
+  id: user.id,
+  email: user.email,
+  subscription: user.subscription,
+  avatarURL: user.avatarURL ?? null,
+});
 
 export const register = async (req, res, next) => {
   const { email, password } = req.body;
@@ -14,7 +21,7 @@ export const register = async (req, res, next) => {
   }
 
   const { subscription } = user;
-  res.status(201).json({ user: { email, subscription } });
+  res.status(201).json({ user: sanitizeUser(user) });
 };
 
 export const login = async (req, res, next) => {
@@ -23,8 +30,7 @@ export const login = async (req, res, next) => {
     return next(HttpError(401)); // For consistency, should return "Not Authorized" instead of "Email or password is wrong"
   }
 
-  const { email, token, subscription } = user;
-  res.json({ token, user: { email, subscription } });
+  res.json({ token: user.token, user: sanitizeUser(user) });
 };
 
 export const logout = async (req, res) => {
@@ -35,15 +41,14 @@ export const logout = async (req, res) => {
 };
 
 export const current = async (req, res) => {
-  const { email, subscription } = req.user;
-  res.json({ email, subscription });
+  res.json(sanitizeUser(req.user));
 };
 
-export const subscription = async (req, res) => {
-  const { subscription } = req.body;
-  const updatedUser = await subscriptionUser(req.user.id, subscription);
+export const update = async (req, res) => {
+  const updatedUser = await updateUser(req.user.id, req.body);
   if (!updatedUser) {
     return next(HttpError(500));
   }
-  res.json({ email: req.user.email, subscription });
+
+  res.json(sanitizeUser(updatedUser));
 };
