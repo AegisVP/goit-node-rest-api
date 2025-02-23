@@ -6,17 +6,26 @@ import {
   createContact,
   updateContact,
 } from '../controllers/contactsControllers.js';
-import validateBody from '../helpers/validateBody.js';
 import {
   updateContactSchema,
   createContactSchema,
   toggleFavoriteSchema,
+  filterContactsSchema,
 } from '../schemas/contactsSchemas.js';
+import { validateBody } from '../helpers/validateBody.js';
+import { validateQuery } from '../helpers/validateQuery.js';
 import { tryCatchWrapper } from '../helpers/tryCatchWrapper.js';
+import { handleAuth } from '../middlewares/handleAuth.js';
 
 const contactsRouter = express.Router();
 
-contactsRouter.get('/', tryCatchWrapper(getAllContacts));
+contactsRouter.use(handleAuth);
+
+contactsRouter.get(
+  '/',
+  validateQuery(filterContactsSchema),
+  tryCatchWrapper(getAllContacts)
+);
 
 contactsRouter.get('/:id', tryCatchWrapper(getOneContact));
 
