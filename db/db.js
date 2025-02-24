@@ -1,4 +1,5 @@
-import { Sequelize, DataTypes } from 'sequelize';
+import { Sequelize } from 'sequelize';
+
 const { DB_HOST, DB_NAME, DB_USER, DB_PASS } = process.env;
 
 export const db = new Sequelize({
