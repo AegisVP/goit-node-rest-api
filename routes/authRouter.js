@@ -5,6 +5,7 @@ import {
   register,
   login,
   update,
+  uploadAvatar,
 } from '../controllers/authController.js';
 import { validateBody } from '../helpers/validateBody.js';
 import {
@@ -15,6 +16,7 @@ import {
 } from '../schemas/usersSchemas.js';
 import { tryCatchWrapper } from '../helpers/tryCatchWrapper.js';
 import { handleAuth } from '../middlewares/handleAuth.js';
+import upload from '../middlewares/storage.js';
 
 const authRouter = express.Router();
 
@@ -44,8 +46,9 @@ authRouter.patch(
 authRouter.patch(
   '/avatars',
   handleAuth,
-  validateBody(updateAvatarSchema),
-  tryCatchWrapper(update)
+  // validateBody(updateAvatarSchema),
+  upload.single('avatar'),
+  tryCatchWrapper(uploadAvatar)
 );
 
 export default authRouter;
