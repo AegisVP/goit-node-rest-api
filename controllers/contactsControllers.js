@@ -8,16 +8,19 @@ import {
 } from '../services/contactsServices.js';
 
 const sanitizeQuery = query => {
-  const sanitizedQuery = {};
+  const retQuery = {};
   Object.keys(query).forEach(key => {
-    if (key === 'favorite') {
-      sanitizedQuery[key] =
-        String(query[key]).trim().toLocaleLowerCase() === 'true';
-    } else if (key === 'limit' || key === 'page') {
-      sanitizedQuery[key] = Number(query[key]);
+    switch (key) {
+      case 'favorite':
+        retQuery[key] = String(query[key]).toLocaleLowerCase() === 'true'; // convert to boolean
+        break;
+      case 'limit':
+      case 'page':
+        retQuery[key] = Number.parseInt(query[key]); // convert to number, it'll be a number because of Joi validation
+        break;
     }
   });
-  return sanitizedQuery;
+  return retQuery;
 };
 
 export const getAllContacts = async (req, res) => {
