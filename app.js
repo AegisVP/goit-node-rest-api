@@ -7,6 +7,7 @@ import contactsRouter from './routes/contactsRouter.js';
 import authRouter from './routes/authRouter.js';
 import { handleErrors } from './middlewares/handleErrors.js';
 import { db } from './db/db.js';
+import './models/Associations.js';
 
 const SERVER_PORT = process.env.SERVER_PORT || 3000;
 const successMsg = `Server is running. Use our API on port: ${SERVER_PORT}`;
