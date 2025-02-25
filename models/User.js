@@ -16,6 +16,10 @@ export const User = db.define('User', {
     values: ['starter', 'pro', 'business'],
     defaultValue: 'starter',
   },
+  avatarURL: {
+    type: DataTypes.STRING,
+    defaultValue: null, // TODO: define a default avatar url
+  },
   token: {
     type: DataTypes.STRING,
     defaultValue: null,

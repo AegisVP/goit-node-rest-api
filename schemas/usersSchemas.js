@@ -1,19 +1,25 @@
 import Joi from 'joi';
 import { constants } from '../config/constants.js';
 
+const user = {
+  userEmail: Joi.string().email(),
+  userPassword: Joi.string().min(6),
+  avatarURL: Joi.string(),
+  userSubscription: Joi.string().valid(...constants.user.subscription),
+};
+
 export const registerUserSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-  subscription: Joi.string().valid(...constants.user.subscription),
+  email: user.userEmail.required(),
+  password: user.userPassword.required(),
+  avatarURL: user.avatarURL,
+  subscription: user.userSubscription,
 });
 
 export const loginUserSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
+  email: user.userEmail.required(),
+  password: user.userPassword.required(),
 });
 
-export const updateUserSubSchema = Joi.object({
-  subscription: Joi.string()
-    .valid(...constants.user.subscription)
-    .required(),
+export const updateSubscriptionSchema = Joi.object({
+  subscription: user.userSubscription.required(),
 });
