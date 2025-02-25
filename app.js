@@ -3,19 +3,20 @@ import morgan from 'morgan';
 import cors from 'cors';
 import 'dotenv/config';
 
-const SERVER_PORT = process.env.SERVER_PORT || 3000;
-
 import contactsRouter from './routes/contactsRouter.js';
 import authRouter from './routes/authRouter.js';
 import { handleErrors } from './middlewares/handleErrors.js';
 import { db } from './db/db.js';
-import { publicDir, verifyDirectories } from './middlewares/storage.js';
+import './models/Associations.js';
+import { publicPath, verifyDirectories } from './middlewares/storage.js';
+
+const SERVER_PORT = process.env.SERVER_PORT || 3000;
 
 const app = express();
 
 app.use(morgan('dev'));
 app.use(cors());
-app.use(express.static(publicDir));
+app.use(express.static(publicPath));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -25,21 +26,34 @@ app.use('/api/contacts', contactsRouter);
 app.use(handleErrors);
 app.use((_, res) => res.status(404).send('Not found'));
 
-try {
-  await db.authenticate();
-  console.log('Database connected successfully.');
-} catch (error) {
-  console.error('Unable to connect to the database:', error);
-  process.exit(1);
-}
+const preparationJobs = [];
+preparationJobs.push(
+  new Promise((resolve, reject) => {
+    db.authenticate()
+      .then(() => resolve('Database connected successfully.'))
+      .catch(error => reject('Unable to connect to the database:', error));
+  })
+);
 
-try {
-  await verifyDirectories();
-  console.log('Directories verified successfully.');
-} catch (error) {
-  console.error('Unable to verify directories:', error);
-  process.exit(1);
-}
+preparationJobs.push(
+  new Promise((resolve, reject) => {
+    verifyDirectories()
+      .then(() => resolve('Directories verified successfully.'))
+      .catch(error => reject('Unable to verify directories:', error));
+  })
+);
+
+await Promise.all(preparationJobs)
+  .then(res =>
+    res.forEach(message => {
+      console.info(message);
+    })
+  )
+  .catch(error => {
+    console.error(error);
+    console.info('Server cannot start - exiting...');
+    process.exit(1);
+  });
 
 try {
   app.listen(SERVER_PORT, () =>

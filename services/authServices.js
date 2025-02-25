@@ -26,11 +26,8 @@ const removeUserToken = async user => {
   return true;
 };
 
-const generateUserAvatar = async userEmail => {
-  const avatarURL = gravatar.url(userEmail, { protocol: 'http' });
-
-  return avatarURL;
-};
+const generateUserAvatar = async userEmail =>
+  gravatar.url(userEmail, { protocol: 'http' });
 
 const verifyUser = async ({ email, password }) => {
   const user = await User.findOne({ where: { email } });
@@ -38,27 +35,23 @@ const verifyUser = async ({ email, password }) => {
     return null;
   }
 
-  if (!comparePasswords(password, user.password)) {
+  if (!(await comparePasswords(password, user.password))) {
     return null;
   }
 
   return user;
 };
 
-export const registerUser = async ({ email, password }) => {
-  const user = await verifyUser({ email, password });
+export const registerUser = async userData => {
+  const user = await verifyUser(userData);
   if (user) {
     return false;
   }
 
-  const avatarURL = await generateUserAvatar(email);
+  userData.avatarURL ??= await generateUserAvatar(userData.email);
+  userData.password = await encryptPassword(userData.password);
 
-  const newUser = await User.create({
-    email,
-    avatarURL,
-    password: encryptPassword(password),
-  });
-
+  const newUser = await User.create(userData);
   if (!newUser) {
     return false;
   }
@@ -66,8 +59,8 @@ export const registerUser = async ({ email, password }) => {
   return newUser;
 };
 
-export const loginUser = async ({ email, password }) => {
-  const user = await verifyUser({ email, password });
+export const loginUser = async userData => {
+  const user = await verifyUser(userData);
   if (!user) {
     return false;
   }

@@ -12,7 +12,6 @@ import {
   registerUserSchema,
   loginUserSchema,
   updateSubscriptionSchema,
-  updateAvatarSchema,
 } from '../schemas/usersSchemas.js';
 import { tryCatchWrapper } from '../helpers/tryCatchWrapper.js';
 import { handleAuth } from '../middlewares/handleAuth.js';
@@ -46,7 +45,6 @@ authRouter.patch(
 authRouter.patch(
   '/avatars',
   handleAuth,
-  // validateBody(updateAvatarSchema),
   upload.single('avatar'),
   tryCatchWrapper(uploadAvatar)
 );

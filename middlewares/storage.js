@@ -1,13 +1,17 @@
 import multer from 'multer';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-export const publicDir = path.join(process.cwd(), 'public');
-export const avatarDir = path.join(publicDir, 'avatars');
-export const uploadDir = path.join(process.cwd(), 'temp');
+
+export const publicDir = 'public';
+export const publicPath = path.join(process.cwd(), 'public');
+export const avatarDir = 'avatars';
+export const avatarPath = path.join(publicPath, avatarDir);
+export const uploadDir = 'temp';
+export const uploadPath = path.join(process.cwd(), uploadDir);
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir);
+    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);
@@ -34,9 +38,9 @@ const createFolderIfNotExist = async folder => {
 
 export const verifyDirectories = async () => {
   try {
-    await createFolderIfNotExist(uploadDir);
-    await createFolderIfNotExist(publicDir);
-    await createFolderIfNotExist(avatarDir);
+    await createFolderIfNotExist(uploadPath);
+    await createFolderIfNotExist(publicPath);
+    await createFolderIfNotExist(avatarPath);
     return true;
   } catch (error) {
     return false;

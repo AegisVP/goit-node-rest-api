@@ -23,7 +23,3 @@ export const loginUserSchema = Joi.object({
 export const updateSubscriptionSchema = Joi.object({
   subscription: user.userSubscription.required(),
 });
-
-export const updateAvatarSchema = Joi.object({
-  avatarURL: user.avatarURL.required(),
-});

@@ -8,7 +8,7 @@ import {
   updateUser,
 } from '../services/authServices.js';
 import { v4 } from 'uuid';
-import { avatarDir } from '../middlewares/storage.js';
+import { avatarDir, avatarPath } from '../middlewares/storage.js';
 
 export const sanitizeUser = (user, fields = []) => {
   const retUsr = {};
@@ -29,8 +29,7 @@ export const sanitizeUser = (user, fields = []) => {
 };
 
 export const register = async (req, res, next) => {
-  const { email, password } = req.body;
-  const user = await registerUser({ email, password });
+  const user = await registerUser(req.body);
   if (!user) {
     return next(HttpError(409, 'Email in use'));
   }
@@ -50,7 +49,7 @@ export const login = async (req, res, next) => {
   });
 };
 
-export const logout = async (req, res) => {
+export const logout = async (req, res, next) => {
   if (!logoutUser(req.user.id)) {
     return next(HttpError(500));
   }
@@ -61,7 +60,7 @@ export const current = async (req, res) => {
   res.json(sanitizeUser(req.user));
 };
 
-export const update = async (req, res) => {
+export const update = async (req, res, next) => {
   const updatedUser = await updateUser(req.user.id, req.body);
   if (!updatedUser) {
     return next(HttpError(500));
@@ -70,21 +69,24 @@ export const update = async (req, res) => {
   res.json(sanitizeUser(updatedUser));
 };
 
-export const uploadAvatar = async (req, res) => {
+export const uploadAvatar = async (req, res, next) => {
   if (!req.file) {
     return next(HttpError(400));
   }
+
   const { path: temporaryName, originalname } = req.file;
   const uniqueName = v4() + path.extname(originalname);
-  const filename = path.join(avatarDir, uniqueName);
+  const fileURL = path.join(avatarDir, uniqueName);
+  const filePath = path.join(avatarPath, uniqueName);
+
   try {
-    await fs.rename(temporaryName, filename);
+    await fs.rename(temporaryName, filePath);
   } catch (error) {
     await fs.unlink(temporaryName);
-    return next(err);
+    return next(HttpError(500, error.message));
   }
 
-  const updatedUser = await updateUser(req.user.id, { avatarURL: filename });
+  const updatedUser = await updateUser(req.user.id, { avatarURL: fileURL });
   if (!updatedUser) {
     return next(HttpError(500));
   }
