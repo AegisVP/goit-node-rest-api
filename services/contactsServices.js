@@ -1,19 +1,15 @@
 import { constants } from '../config/constants.js';
-import { Contact } from '../models/Contact.js';
 
-const isOwnerOfContact = (userId, contact) => contact.owner === userId;
-
-export const listContacts = async query => {
+export const listContacts = async (owner, query) => {
   const options = {};
   if (typeof query.favorite === 'boolean') {
     options.favorite = query.favorite;
   }
 
-  const owner = query.owner;
   const limit = query.limit || constants.contacts.defaultLimit;
   const offset = (Number.parseInt(query.page ?? 1) - 1) * (limit ?? 0);
-  return await Contact.findAll({
-    where: { owner, ...options },
+  return await owner.getContacts({
+    where: { ...options },
     limit:
       query.limit !== constants.contacts.defaultLimit || query.page > 1
         ? limit
@@ -22,38 +18,27 @@ export const listContacts = async query => {
   });
 };
 
-export const getContactById = async contactId => {
-  return await Contact.findByPk(contactId);
+export const getContactById = async (owner, contactId) => {
+  return (await owner.getContacts({ where: { id: contactId } }))[0] ?? null;
 };
 
-export const removeContact = async contactId => {
-  const contact = await getContactById(contactId);
-
+export const removeContact = async (owner, contactId) => {
+  const contact = await getContactById(owner, contactId);
   if (!contact) {
     return null;
   }
 
-  try {
-    await contact.destroy();
-  } catch (error) {
-    console.error('Error removing contact:', error);
-  }
+  await contact.destroy();
 
   return contact;
 };
 
-export const addContact = async ({
-  name,
-  email,
-  phone,
-  owner,
-  favorite = false,
-}) => {
-  return await Contact.create({ name, email, phone, owner, favorite });
+export const addContact = async (owner, contactData) => {
+  return await owner.createContact(contactData);
 };
 
-export const modifyContact = async (contactId, contactData) => {
-  const contact = await getContactById(contactId);
+export const modifyContact = async (owner, contactId, contactData) => {
+  const contact = await getContactById(owner, contactId);
   if (!contact) {
     return null;
   }
@@ -63,11 +48,7 @@ export const modifyContact = async (contactId, contactData) => {
   contact.phone = contactData.phone ?? contact.phone;
   contact.favorite = contactData.favorite ?? contact.favorite;
 
-  try {
-    await contact.save();
-  } catch (error) {
-    console.error(error);
-  }
+  await contact.save();
 
   return contact;
 };
