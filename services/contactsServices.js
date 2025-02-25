@@ -28,11 +28,7 @@ export const removeContact = async (owner, contactId) => {
     return null;
   }
 
-  try {
-    await contact.destroy();
-  } catch (error) {
-    console.error('Error removing contact:', error);
-  }
+  await contact.destroy();
 
   return contact;
 };
@@ -52,11 +48,7 @@ export const modifyContact = async (owner, contactId, contactData) => {
   contact.phone = contactData.phone ?? contact.phone;
   contact.favorite = contactData.favorite ?? contact.favorite;
 
-  try {
-    await contact.save();
-  } catch (error) {
-    console.error(error);
-  }
+  await contact.save();
 
   return contact;
 };
