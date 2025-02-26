@@ -10,7 +10,7 @@ import {
 import { v4 } from 'uuid';
 import { avatarDir, avatarPath } from '../middlewares/storage.js';
 
-export const sanitizeUser = (user, fields = []) => {
+const sanitizeUser = (user, fields = []) => {
   const retUsr = {};
 
   if (fields.length === 0) {
