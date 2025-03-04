@@ -1,31 +1,22 @@
-import path from 'node:path';
-import fs from 'node:fs/promises';
 import HttpError from '../helpers/HttpError.js';
+import { saveFile } from '../helpers/saveFile.js';
 import {
   loginUser,
   logoutUser,
   registerUser,
   updateUser,
 } from '../services/authServices.js';
-import { v4 } from 'uuid';
-import { avatarDir, avatarPath } from '../middlewares/storage.js';
 
 const sanitizeUser = (user, fields = []) => {
-  const retUsr = {};
-
   if (fields.length === 0) {
-    retUsr.id = user.id;
-    retUsr.email = user.email;
-    retUsr.subscription = user.subscription;
-    retUsr.avatarURL = user.avatarURL ?? null;
+    const { id, email, subscription, avatarURL } = user;
+    return { id, email, subscription, avatarURL };
   }
 
-  if (fields.includes('id')) retUsr.id = user.id;
-  if (fields.includes('email')) retUsr.email = user.email;
-  if (fields.includes('subscription')) retUsr.subscription = user.subscription;
-  if (fields.includes('avatarURL')) retUsr.avatarURL = user.avatarURL ?? null;
-
-  return retUsr;
+  return fields.reduce((acc, field) => {
+    acc[field] = field === 'avatarURL' ? (user[field] ?? null) : user[field];
+    return acc;
+  }, {});
 };
 
 export const register = async (req, res, next) => {
@@ -74,19 +65,9 @@ export const uploadAvatar = async (req, res, next) => {
     return next(HttpError(400));
   }
 
-  const { path: temporaryName, originalname } = req.file;
-  const uniqueName = v4() + path.extname(originalname);
-  const fileURL = path.join(avatarDir, uniqueName);
-  const filePath = path.join(avatarPath, uniqueName);
+  const avatarURL = await saveFile(req.file);
 
-  try {
-    await fs.rename(temporaryName, filePath);
-  } catch (error) {
-    await fs.unlink(temporaryName);
-    return next(HttpError(500, error.message));
-  }
-
-  const updatedUser = await updateUser(req.user.id, { avatarURL: fileURL });
+  const updatedUser = await updateUser(req.user.id, { avatarURL });
   if (!updatedUser) {
     return next(HttpError(500));
   }

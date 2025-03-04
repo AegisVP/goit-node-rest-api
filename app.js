@@ -31,7 +31,9 @@ preparationJobs.push(
   new Promise((resolve, reject) => {
     db.authenticate()
       .then(() => resolve('Database connected successfully.'))
-      .catch(error => reject('Unable to connect to the database:', error));
+      .catch(err =>
+        reject('Unable to connect to the database: ' + err.message)
+      );
   })
 );
 
@@ -39,7 +41,9 @@ preparationJobs.push(
   new Promise((resolve, reject) => {
     verifyDirectories()
       .then(() => resolve('Directories verified successfully.'))
-      .catch(error => reject('Unable to verify directories:', error));
+      .catch(err =>
+        reject('Unable to verify working directories: ' + err.message)
+      );
   })
 );
 
