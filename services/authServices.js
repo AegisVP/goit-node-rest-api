@@ -1,13 +1,7 @@
+import gravatar from 'gravatar';
 import { User } from '../models/User.js';
 import { comparePasswords, encryptPassword } from '../helpers/passCrypt.js';
 import { generateToken } from '../helpers/jwt.js';
-
-const sanitizeUser = user => ({
-  id: user.id,
-  email: user.email,
-  subscription: user.subscription,
-  token: user.token ?? null,
-});
 
 const setUserToken = async user => {
   if (!user || !(user instanceof User)) {
@@ -32,48 +26,50 @@ const removeUserToken = async user => {
   return true;
 };
 
+const generateUserAvatar = async userEmail =>
+  gravatar.url(userEmail, { protocol: 'http' });
+
 const verifyUser = async ({ email, password }) => {
   const user = await User.findOne({ where: { email } });
   if (!user) {
     return null;
   }
 
-  if (!comparePasswords(password, user.password)) {
+  if (!(await comparePasswords(password, user.password))) {
     return null;
   }
 
   return user;
 };
 
-export const registerUser = async ({ email, password }) => {
-  const user = await verifyUser({ email, password });
+export const registerUser = async userData => {
+  const user = await verifyUser(userData);
   if (user) {
     return false;
   }
 
-  const newUser = await User.create({
-    email,
-    password: encryptPassword(password),
-  });
+  userData.avatarURL ??= await generateUserAvatar(userData.email);
+  userData.password = await encryptPassword(userData.password);
 
+  const newUser = await User.create(userData);
   if (!newUser) {
     return false;
   }
 
-  return sanitizeUser(newUser);
+  return newUser;
 };
 
-export const loginUser = async ({ email, password }) => {
-  const user = await verifyUser({ email, password });
+export const loginUser = async userData => {
+  const user = await verifyUser(userData);
   if (!user) {
     return false;
   }
 
-  if (!setUserToken(user)) {
+  if (!(await setUserToken(user))) {
     return false;
   }
 
-  return sanitizeUser(user);
+  return user;
 };
 
 export const logoutUser = async userId => {
@@ -82,17 +78,21 @@ export const logoutUser = async userId => {
     return false;
   }
 
-  return removeUserToken(user);
+  if (!(await removeUserToken(user))) {
+    return false;
+  }
+
+  return user;
 };
 
-export const subscriptionUser = async (userId, subscription) => {
+export const updateUser = async (userId, userData) => {
   const user = await User.findByPk(userId);
   if (!user) {
     return null;
   }
 
-  user.subscription = subscription;
+  user.update(userData);
   await user.save();
 
-  return sanitizeUser(user);
+  return user;
 };
