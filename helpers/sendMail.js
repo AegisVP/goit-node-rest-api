@@ -1,6 +1,4 @@
-export const sendMail = async (to, subject, text) => {
-  console.log({ to, subject, text });
-};
+import { sendMail } from './sendMail_Mailjet';
 
 export const sendVerificationEmail = async (to, verificationToken) => {
   await sendMail(
