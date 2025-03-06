@@ -6,12 +6,16 @@ import {
   login,
   update,
   uploadAvatar,
+  verify,
+  resend,
 } from '../controllers/authController.js';
 import { validateBody } from '../helpers/validateBody.js';
 import {
   registerUserSchema,
   loginUserSchema,
   updateSubscriptionSchema,
+  sendVerifyEmailSchema,
+  verifyEmailSchema,
 } from '../schemas/usersSchemas.js';
 import { tryCatchWrapper } from '../helpers/tryCatchWrapper.js';
 import { handleAuth } from '../middlewares/handleAuth.js';
@@ -29,6 +33,14 @@ authRouter.post(
   '/login',
   validateBody(loginUserSchema),
   tryCatchWrapper(login)
+);
+
+authRouter.get('/verify/:verificationToken', tryCatchWrapper(verify));
+
+authRouter.post(
+  '/verify',
+  validateBody(sendVerifyEmailSchema),
+  tryCatchWrapper(resend)
 );
 
 authRouter.post('/logout', handleAuth, tryCatchWrapper(logout));

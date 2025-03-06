@@ -2,6 +2,8 @@ import gravatar from 'gravatar';
 import { User } from '../models/User.js';
 import { comparePasswords, encryptPassword } from '../helpers/passCrypt.js';
 import { generateToken } from '../helpers/jwt.js';
+import { generateVerificationToken } from '../helpers/verificationToken.js';
+import { sendVerificationEmail } from '../helpers/sendMail.js';
 
 const setUserToken = async user => {
   if (!user || !(user instanceof User)) {
@@ -42,6 +44,24 @@ const verifyUser = async ({ email, password }) => {
   return user;
 };
 
+const sendUserVerification = async user => {
+  if (!(user instanceof User)) {
+    user = await User.findOne({ where: { email: user } });
+  }
+
+  if (!user) {
+    return false;
+  }
+
+  user.verificationToken = generateVerificationToken();
+  user.emailVerified = false;
+  await user.save();
+
+  sendVerificationEmail(user.email, user.verificationToken);
+
+  return user;
+};
+
 export const registerUser = async userData => {
   const user = await verifyUser(userData);
   if (user) {
@@ -56,7 +76,35 @@ export const registerUser = async userData => {
     return false;
   }
 
+  sendUserVerification(newUser);
+
   return newUser;
+};
+
+export const verifyUserEmail = async verificationToken => {
+  const user = await User.findOne({ where: { verificationToken } });
+  if (!user) {
+    return null;
+  }
+
+  user.verificationToken = null;
+  user.emailVerified = true;
+  await user.save();
+
+  return user;
+};
+
+export const resendUserVerification = async email => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    return false;
+  }
+
+  if (user.emailVerified) {
+    return user;
+  }
+
+  return sendUserVerification(user);
 };
 
 export const loginUser = async userData => {
@@ -65,7 +113,7 @@ export const loginUser = async userData => {
     return false;
   }
 
-  if (!(await setUserToken(user))) {
+  if (user.emailVerified && !(await setUserToken(user))) {
     return false;
   }
 

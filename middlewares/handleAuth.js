@@ -7,6 +7,9 @@ export const handleAuth = (req, res, next) => {
     if (err || !user || user.token !== reqToken) {
       return next(HttpError(401));
     }
+    if (user.emailVerified === false) {
+      return next(HttpError(401, 'Email not verified'));
+    }
     req.user = user;
     next();
   })(req, res, next);
