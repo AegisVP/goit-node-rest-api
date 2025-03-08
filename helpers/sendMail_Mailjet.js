@@ -23,5 +23,6 @@ export const sendMail = async (to, subject, text) => {
     })
     .catch(err => {
       console.log(err.statusCode);
+      throw err;
     });
 };

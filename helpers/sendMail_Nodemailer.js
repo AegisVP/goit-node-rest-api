@@ -14,5 +14,8 @@ export const sendMail = async (to, subject, text) => {
   transporter
     .sendMail(emailOptions)
     .then(info => console.log(info))
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      throw err;
+    });
 };
