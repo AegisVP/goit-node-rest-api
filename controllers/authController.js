@@ -4,7 +4,9 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  resendUserVerification,
   updateUser,
+  verifyUserEmail,
 } from '../services/authServices.js';
 
 const sanitizeUser = (user, fields = []) => {
@@ -28,10 +30,36 @@ export const register = async (req, res, next) => {
   res.status(201).json({ user: sanitizeUser(user, ['email', 'subscription']) });
 };
 
+export const verify = async (req, res, next) => {
+  const user = await verifyUserEmail(req.params.verificationToken);
+  if (!user) {
+    return next(HttpError(404, 'User not found'));
+  }
+
+  res.json({ message: 'Verification successful' });
+};
+
+export const resend = async (req, res, next) => {
+  const user = await resendUserVerification(req.body.email);
+  if (!user) {
+    return next(HttpError(404, 'User not found'));
+  }
+
+  if (user.emailVerified) {
+    return next(HttpError(400, 'Verification has already been passed'));
+  }
+
+  res.json({ message: 'Verification email sent' });
+};
+
 export const login = async (req, res, next) => {
   const user = await loginUser(req.body);
   if (!user) {
-    return next(HttpError(401)); // For consistency, should return "Not Authorized" instead of "Email or password is wrong"
+    return next(HttpError(401));
+  }
+
+  if (!user.emailVerified) {
+    return next(HttpError(401, 'Email not verified'));
   }
 
   res.json({

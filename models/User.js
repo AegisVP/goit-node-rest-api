@@ -24,6 +24,14 @@ export const User = db.define('User', {
     type: DataTypes.STRING,
     defaultValue: null,
   },
+  verificationToken: {
+    type: DataTypes.STRING,
+    defaultValue: null,
+  },
+  emailVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 // User.sync({ alter: true });
