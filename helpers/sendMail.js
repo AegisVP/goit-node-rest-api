@@ -1,4 +1,4 @@
-import { sendMail } from './sendMail_Mailjet';
+import { sendMail } from './sendMail_Mailjet.js';
 
 export const sendVerificationEmail = async (to, verificationToken) => {
   await sendMail(
